@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecohost_app
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:stable
+    container_name: ecohost_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8
+    container_name: ecohost_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecohost
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: ecohost123
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:

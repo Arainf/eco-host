@@ -1,25 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# run composer install if vendor missing (safeguard)
-if [ ! -d "vendor" ]; then
-  composer install --no-dev --optimize-autoloader --no-interaction
-fi
+echo "Waiting for DB ${DB_HOST}:${DB_PORT} ..."
 
-# generate app key if missing (only if APP_KEY is empty)
-if [ -z "$APP_KEY" ]; then
-  php artisan key:generate --force
-fi
+i=0
+while [ "$i" -lt 30 ]; do
+  i=$((i + 1))
+  if mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USERNAME" -p"$DB_PASSWORD" -e "select 1" >/dev/null 2>&1; then
+    echo "Database is ready."
+    break
+  fi
+  echo "DB not ready... retrying ($i/30)"
+  sleep 2
+done
 
-# run migrations (optional: comment out if you prefer manual migrations)
-if [ "$RUN_MIGRATIONS" = "true" ]; then
-  php artisan migrate --force
-fi
+echo "Running migrations..."
+php artisan migrate --force || true
 
-# clear/cache config & routes for production
+echo "Optimizing Laravel..."
 php artisan config:clear || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-# start the app (the CMD or default will be used)
-exec "$@"
+echo "Starting Laravel..."
+exec php artisan serve --host 0.0.0.0 --port 10000

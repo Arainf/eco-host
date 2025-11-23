@@ -1,9 +1,10 @@
 # ---------- builder stage ----------
 FROM php:8.3-cli AS builder
 
-# system deps
+# install system deps
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libonig-dev libxml2-dev libzip-dev zlib1g-dev \
+    git curl zip unzip libzip-dev libonig-dev libxml2-dev zlib1g-dev pkg-config \
+    && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath pdo pdo_mysql zip
 
 # install composer
@@ -11,45 +12,46 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# copy composer files first for caching
-COPY composer.json composer.lock ./
-RUN composer install --no-interaction --prefer-dist --no-progress
-
-# copy full Laravel project
+# copy all files first (Laravel must be present BEFORE composer)
 COPY . .
+
+# install dependencies
+RUN composer install --no-interaction --prefer-dist --no-progress
 
 # ---------- runtime stage ----------
 FROM php:8.3-cli
 
+# install runtime deps
 RUN apt-get update && apt-get install -y \
-    unzip curl wait-for-it \
+    unzip curl default-mysql-client libzip-dev zlib1g-dev pkg-config \
+    && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath pdo pdo_mysql zip
 
 WORKDIR /var/www/html
 
-# copy from builder
+# copy app from builder
 COPY --from=builder /app /var/www/html
 
-# ENTRYPOINT SCRIPT (runs migration automatically)
+# entrypoint (wait for DB + auto migrate + start server)
 RUN echo '#!/bin/bash\n\
 set -e\n\
-echo \"Waiting for database $DB_HOST:$DB_PORT...\"\n\
+echo \"Waiting for DB $DB_HOST:$DB_PORT...\"\n\
 for i in {1..30}; do\n\
   if mysql -h$DB_HOST -P$DB_PORT -u$DB_USERNAME -p$DB_PASSWORD -e \"select 1\" >/dev/null 2>&1; then\n\
-    echo \"Database is ready.\";\n\
+    echo \"DB ready\";\n\
     break;\n\
   else\n\
-    echo \"DB not ready... retrying ($i of 30)\";\n\
+    echo \"DB not ready, retrying ($i/30)\";\n\
     sleep 2;\n\
   fi;\n\
 done\n\
 echo \"Running migrations...\"\n\
 php artisan migrate --force || true\n\
-echo \"Optimizing Laravel...\"\n\
+echo \"Optimizing...\"\n\
 php artisan config:clear\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
-echo \"Starting Laravel server...\"\n\
+echo \"Starting server...\"\n\
 exec php artisan serve --host 0.0.0.0 --port 10000\n' > /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

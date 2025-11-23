@@ -6,35 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
 
-            // User who created the entry
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
-            // Core fields
             $table->string('expense_name');
             $table->string('category_name');
             $table->string('category_color')->nullable();
             $table->string('subcategory_name')->nullable();
             $table->text('description')->nullable();
-
             $table->decimal('amount', 10, 2);
             $table->date('date');
-
             $table->text('remarks')->nullable();
+
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')->on('users')
+                ->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('expenses');

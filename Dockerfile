@@ -4,6 +4,7 @@ FROM php:8.3-cli AS builder
 # install system deps
 RUN apt-get update && apt-get install -y \
     git curl zip unzip libzip-dev libonig-dev libxml2-dev zlib1g-dev pkg-config \
+    nodejs npm \
     && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath pdo pdo_mysql zip
 
@@ -12,26 +13,19 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# copy all project files FIRST
+# copy all project files
 COPY . .
 
-# install PHP dependencies
+# install php dependencies
 RUN composer install --no-interaction --prefer-dist --no-progress
 
-# install Node + Vite build deps
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
-
-# install JS deps
-RUN npm ci --no-audit --no-fund
-
-# build Vite assets
+# install JS deps + build assets
+RUN npm install
 RUN npm run build
 
 # ---------- runtime stage ----------
 FROM php:8.3-cli
 
-# install runtime deps
 RUN apt-get update && apt-get install -y \
     unzip curl default-mysql-client libzip-dev zlib1g-dev pkg-config \
     && docker-php-ext-configure zip \
@@ -39,10 +33,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
-# copy built application
+# copy full app (except node_modules)
 COPY --from=builder /app /var/www/html
 
-# Copy entrypoint
+# MAKE SURE build assets are copied
+COPY --from=builder /app/public/build /var/www/html/public/build
+
+# copy entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

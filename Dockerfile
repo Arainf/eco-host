@@ -1,11 +1,14 @@
 # -------------------------------
 # Stage 1: Build Vite Assets + Composer
 # -------------------------------
-FROM node:18 AS frontend-builder
+FROM node:20 AS frontend-builder
 WORKDIR /app
 
 # Copy full Laravel project
 COPY . .
+
+# Install PHP because Wayfinder needs php artisan
+RUN apt-get update && apt-get install -y php php-cli
 
 # Install node deps
 RUN npm install

@@ -1,26 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
 
-echo "Waiting for DB ${DB_HOST}:${DB_PORT} ..."
+# Ensure proper ownership / perms for Laravel
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
 
-i=0
-while [ "$i" -lt 30 ]; do
-  i=$((i + 1))
-  if mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USERNAME" -p"$DB_PASSWORD" -e "select 1" >/dev/null 2>&1; then
-    echo "Database is ready."
-    break
-  fi
-  echo "DB not ready... retrying ($i/30)"
-  sleep 2
-done
+# Optional: warm caches (uncomment if you want)
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
 
-echo "Running migrations..."
-php artisan migrate --force || true
+# If you want migrations to run automatically on start, uncomment:
+# php artisan migrate --force
 
-echo "Optimizing Laravel..."
-php artisan config:clear || true
-php artisan route:cache || true
-php artisan view:cache || true
-
-echo "Starting Laravel..."
-exec php artisan serve --host 0.0.0.0 --port 10000
+# Start supervisord (supervisord is executed by CMD in Dockerfile)
+exec "$@"

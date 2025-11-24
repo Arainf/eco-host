@@ -6,6 +6,14 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
     base: process.env.ASSET_URL ? process.env.ASSET_URL + '/' : '/',
+
+    build: {
+        outDir: 'public/build',
+        assetsDir: 'assets',
+        manifest: true,
+        emptyOutDir: true,
+    },
+
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
@@ -22,6 +30,7 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+
     esbuild: {
         jsx: 'automatic',
     },

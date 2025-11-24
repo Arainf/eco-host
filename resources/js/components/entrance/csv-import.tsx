@@ -11,6 +11,9 @@ import { Loader2 } from "lucide-react"
 
 export function CsvImportSection({ refreshRecent }: any) {
 
+    // Coming Soon switch (turn false later)
+    const is_comingSoon = true
+
     const [loading, setLoading] = useState(false)
     const [pendingImport, setPendingImport] = useState<any[]>([])
     const [skipped, setSkipped] = useState<any[]>([])
@@ -27,10 +30,8 @@ export function CsvImportSection({ refreshRecent }: any) {
         "remarks",
     ]
 
-    // ---------------------------------------------
-    // STEP 1 — FILE UPLOAD & PRE-CHECK (NO IMPORT)
-    // ---------------------------------------------
     const handleFile = (e: any) => {
+        if (is_comingSoon) return            // Disable feature
         const file = e.target.files[0]
         if (!file) return
 
@@ -45,7 +46,6 @@ export function CsvImportSection({ refreshRecent }: any) {
                 const rows = result.data
                 const columns = Object.keys(rows[0] || {})
 
-                // 1. Missing Columns
                 const missing = REQUIRED_COLUMNS.filter(c => !columns.includes(c))
                 if (missing.length > 0) {
                     toast.error(`Missing column(s): ${missing.join(", ")}`)
@@ -53,20 +53,15 @@ export function CsvImportSection({ refreshRecent }: any) {
                     return
                 }
 
-                // 2. Prepare Arrays
                 const valid: any[] = []
                 const invalid: any[] = []
 
-                // Validate but DO NOT STOP
                 rows.forEach((row: any) => {
                     const hasMissing =
                         REQUIRED_COLUMNS.some(col => !row[col] || row[col] === "")
 
-                    const amountInvalid =
-                        isNaN(Number(row.amount))
-
-                    const dateInvalid =
-                        isNaN(new Date(row.date).getTime())
+                    const amountInvalid = isNaN(Number(row.amount))
+                    const dateInvalid = isNaN(new Date(row.date).getTime())
 
                     if (hasMissing || amountInvalid || dateInvalid) {
                         invalid.push(row)
@@ -75,7 +70,6 @@ export function CsvImportSection({ refreshRecent }: any) {
                     }
                 })
 
-                // 3. Check subcategory validity (soft)
                 let categories = []
                 try {
                     const res = await axios.get("/data/categories")
@@ -117,10 +111,9 @@ export function CsvImportSection({ refreshRecent }: any) {
         })
     }
 
-    // -------------------------------------------------
-    // STEP 2 — CONFIRMED IMPORT
-    // -------------------------------------------------
     const confirmImport = async () => {
+        if (is_comingSoon) return            // Disable feature
+
         if (pendingImport.length === 0) {
             toast.error("No valid rows to import.")
             return
@@ -138,7 +131,6 @@ export function CsvImportSection({ refreshRecent }: any) {
             toast.error("Import failed.")
         }
 
-        // reset
         setPendingImport([])
         setSkipped([])
         setShowSummary(false)
@@ -147,8 +139,18 @@ export function CsvImportSection({ refreshRecent }: any) {
 
     return (
         <Card className="relative">
+
+            {/* Coming Soon Overlay */}
+            {is_comingSoon && (
+                <div className="absolute inset-0 bg-white/80 dark:bg-black/70 backdrop-blur-sm z-10
+                                flex flex-col items-center justify-center rounded-md">
+                    <p className="text-lg font-semibold">CSV Import</p>
+                    <p className="text-sm text-neutral-500">Coming Soon 🚧</p>
+                </div>
+            )}
+
             {loading && (
-                <div className="absolute inset-0 bg-white/70 dark:bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center rounded-md z-10">
+                <div className="absolute inset-0 bg-white/70 dark:bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center rounded-md z-20">
                     <Loader2 className="animate-spin h-6 w-6 mb-2" />
                     <p className="text-sm">Processing CSV…</p>
                 </div>
@@ -160,33 +162,44 @@ export function CsvImportSection({ refreshRecent }: any) {
 
             <CardContent className="space-y-4">
 
-                {/* Upload */}
-                <Input type="file" accept=".csv" onChange={handleFile} disabled={loading} />
+                <Input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFile}
+                    disabled={loading || is_comingSoon}
+                    placeholder={is_comingSoon ? "Coming Soon..." : ""}
+                />
 
                 <p className="text-xs text-neutral-500">
-                    Required columns: expense_name, subcategory_name, category_name, category_color, description, amount, date, remarks
+                    Required columns: expense_name, subcategory_name, category_name, category_color,
+                    description, amount, date, remarks
                 </p>
 
-                {/* SUMMARY PANEL */}
                 {showSummary && (
-                    <div className="rounded-md border p-4 bg-neutral-50 dark:bg-neutral-900 mt-4 space-y-3">
+                    <div className={`rounded-md border p-4 bg-neutral-50 dark:bg-neutral-900 mt-4 space-y-3 ${is_comingSoon ? "opacity-50" : ""}`}>
+
                         <h3 className="font-semibold text-sm">CSV Summary</h3>
 
                         <p className="text-sm">
-                            <span className="font-semibold">{pendingImport.length}</span> valid row(s) will be imported.
+                            <span className="font-semibold">{pendingImport.length}</span> valid row(s).
                         </p>
 
                         {skipped.length > 0 && (
                             <p className="text-sm text-orange-500">
-                                ⚠ {skipped.length} row(s) skipped due to missing or invalid data.
+                                ⚠ {skipped.length} row(s) skipped.
                             </p>
                         )}
 
-                        <Button onClick={confirmImport} className="w-full mt-2">
-                            Import Now
+                        <Button
+                            onClick={confirmImport}
+                            className="w-full mt-2"
+                            disabled={is_comingSoon}
+                        >
+                            {is_comingSoon ? "Coming Soon 🚧" : "Import Now"}
                         </Button>
                     </div>
                 )}
+
             </CardContent>
         </Card>
     )

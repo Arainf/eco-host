@@ -11,9 +11,9 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { categories, dashboard, entrance } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import {LayoutGrid, Database,LibraryBig , ChartColumnDecreasing , Goal , History , BookUser  , Settings,    } from 'lucide-react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import {LayoutGrid, Database,LibraryBig , ChartColumnDecreasing , Goal , History , BookUser   } from 'lucide-react';
 import { CircleQuestionIcon } from "@/assets/circle-question-mark";
 import AppLogo from './app-logo';
 
@@ -37,36 +37,49 @@ const mainNavItems: NavItem[] = [
         title: 'Reports & Analytics',
         href: dashboard(),
         icon: ChartColumnDecreasing,
+        comingSoon: true
     },
     {
         title: 'Sustainability Goals',
         href: dashboard(),
         icon: Goal,
+        comingSoon: true
     },
     {
         title: 'Activity Log',
         href: dashboard(),
         icon: History,
+        comingSoon: true
     },
     {
         title: 'User Management',
         href: dashboard(),
         icon: BookUser,
-    },
-    {
-        title: 'System Settings',
-        href: dashboard(),
-        icon: Settings ,
+        comingSoon: true
     },
     {
         title: 'Help / Resources',
         href: dashboard(),
         icon: CircleQuestionIcon,
+        comingSoon: true
     },
 ];
 
 
 export function AppSidebar() {
+
+    const { auth } = usePage<SharedData>().props;
+
+    const allowedItems = mainNavItems.filter((item) => {
+        // Items restricted to admins
+        const adminOnly = ['Categories', 'User Management', 'Activity Log'];
+
+        // If user is NOT admin, hide admin-only items
+        return !(!auth?.user?.is_admin && adminOnly.includes(item.title));
+
+    });
+
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -82,7 +95,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={allowedItems} />
             </SidebarContent>
 
             <SidebarFooter>

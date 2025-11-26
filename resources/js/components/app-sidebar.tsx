@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { categories, dashboard, entrance } from '@/routes';
+import { categories, dashboard, entrance, sustainability, activity } from '@/routes';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {LayoutGrid, Database,LibraryBig , ChartColumnDecreasing , Goal , History , BookUser   } from 'lucide-react';
@@ -41,15 +41,14 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Sustainability Goals',
-        href: dashboard(),
+        href: sustainability(),
         icon: Goal,
         comingSoon: true
     },
     {
         title: 'Activity Log',
-        href: dashboard(),
+        href: activity(),
         icon: History,
-        comingSoon: true
     },
     {
         title: 'User Management',

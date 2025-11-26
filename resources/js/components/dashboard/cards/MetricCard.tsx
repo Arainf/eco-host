@@ -1,9 +1,24 @@
-// components/dashboard/cards/MetricCardV2.tsx
 "use client"
 
 import React, { useMemo } from "react"
-import { AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts"
-import { hexToRgba } from '@/components/dashboard/utils/colors';
+import {
+    LineChart,
+    Line,
+    ResponsiveContainer,
+    Tooltip,
+    CartesianGrid,
+    XAxis,
+} from "recharts"
+
+// shadcn UI
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal } from 'lucide-react';
 
 type DataPoint = { label: string; value: number }
 
@@ -11,12 +26,10 @@ type MetricCardV2Props = {
     title?: string
     categoryName: string
     categoryColor: string
-    data: DataPoint[]                  // daily values for chart
+    data: DataPoint[]
+    previousData?: DataPoint[]        // ← NEW
     loading?: boolean
-    subtitle?: string
-    metricType?: "total" | "count" | "average"
     onCategoryChange?: (category: string) => void
-    onMetricTypeChange?: (t: "total" | "count" | "average") => void
     allCategories?: { name: string; color: string }[]
 }
 
@@ -25,108 +38,199 @@ export default function MetricCardV2({
                                          categoryName,
                                          categoryColor,
                                          data = [],
+                                         previousData = [],
                                          loading = false,
-                                         subtitle,
-                                         metricType = "total",
                                          onCategoryChange,
-                                         onMetricTypeChange,
                                          allCategories = [],
                                      }: MetricCardV2Props) {
-    // value calculation based on metricType
-    const valueNumber = useMemo(() => {
-        const total = data.reduce((s, d) => s + Number(d.value ?? 0), 0)
-        const count = data.length
-        if (metricType === "total") return total
-        if (metricType === "average") return count === 0 ? 0 : total / count
-        return count // count
-    }, [data, metricType])
 
-    const formatted = useMemo(() => {
-        if (metricType === "count") return `${valueNumber}`
-        // money-looking formatting for total/average
-        return `₱${Number(valueNumber).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-    }, [valueNumber, metricType])
+    // Total this month
+    const total = useMemo(() => {
+        return data.reduce((s, d) => s + Number(d.value ?? 0), 0)
+    }, [data])
 
-    // gradient id unique per category to avoid collisions
-    const gradientId = `g-${(categoryName || "c").replace(/\s+/g, "")}`
+    // Total previous month
+    const prevTotal = useMemo(() => {
+        return previousData.reduce((s, d) => s + Number(d.value ?? 0), 0)
+    }, [previousData])
+
+    // Percentage change
+    const percentChange = useMemo(() => {
+        if (!Array.isArray(previousData) || previousData.length === 0) return null;
+
+        const prev = prevTotal;
+        const curr = total;
+
+        if (prev <= 0) return null;
+
+        return ((curr - prev) / prev) * 100;
+    }, [total, prevTotal, previousData]);
+
+
+    const formattedTotal = `₱${total.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+    })}`
+
+    // Subtitle logic
+    const subtitle = useMemo(() => {
+        if (percentChange === null) return "No previous data"
+
+        const abs = Math.abs(percentChange).toFixed(1)
+
+        return percentChange > 0
+            ? `↑ ${abs}% from last month`
+            : `↓ ${abs}% lower than last month`
+    }, [percentChange])
+
+    // Clean date formatting
+    const formattedData = data.map((d) => {
+        const [mm, dd] = d.label.split("/")
+        const monthName = new Date(2025, Number(mm) - 1, Number(dd)).toLocaleString(
+            "en-US",
+            { month: "short" }
+        )
+        return {
+            ...d,
+            readable: `${monthName} ${dd}`,
+        }
+    })
 
     return (
         <div
             className="
-        relative overflow-hidden rounded-2xl border border-white/10
-        bg-white/85 dark:bg-neutral-900/50 backdrop-blur-xl
-        shadow-[0_10px_30px_rgba(2,6,23,0.12)]
-        p-4 transition-transform hover:-translate-y-1
+        relative overflow-hidden rounded-xl border
+        border-neutral-200/60 dark:border-neutral-800/60
+        bg-white/90 dark:bg-neutral-900/50 backdrop-blur-md
+        shadow-sm hover:shadow-md
+        p-5 pt-8 transition-all duration-300
+        flex items-center justify-between gap-6
       "
-            role="region"
-            aria-label={`Metric card ${categoryName}`}
         >
-            {/* top controls */}
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <div className="text-xs text-muted-foreground font-medium">{title ?? categoryName}</div>
-                    <div className="mt-1 text-2xl font-extrabold text-neutral-900 dark:text-neutral-50">
-                        {loading ? <span className="inline-block h-6 w-32 bg-gray-200 dark:bg-neutral-700 animate-pulse rounded" /> : formatted}
-                        <span className="ml-2 text-sm font-medium text-muted-foreground">{metricType === "average" ? "avg" : ""}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">{subtitle ?? `${data.length} datapoints`}</div>
+            {/* ⋮ dropdown menu */}
+            <div className="absolute left-3 top-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 transition"
+                        >
+                            <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                        align="start"
+                        className="w-66 p-2 animate-in fade-in zoom-in-50 duration-150"
+                    >
+                        <p className="text-xs px-2 pb-1 text-neutral-500">Select Category</p>
+
+                        {allCategories.map((c) => (
+                            <Button
+                                key={c.name}
+                                variant="ghost"
+                                className="w-full justify-start text-sm transition"
+                                onClick={() => onCategoryChange?.(c.name)}
+                            >
+                                <span
+                                    className="w-2 h-2 rounded-full mr-2"
+                                    style={{ backgroundColor: c.color }}
+                                />
+                                {c.name}
+                            </Button>
+                        ))}
+
+                        <DropdownMenuSeparator />
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            {/* LEFT CONTENT */}
+            <div className="flex flex-col w-1/2 space-y-2">
+                <div className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                    {title ?? categoryName}
                 </div>
 
-                {/* dropdowns */}
-                <div className="flex flex-col items-end gap-2">
-                    <select
-                        className="text-xs rounded px-2 py-1 bg-white/60 dark:bg-neutral-800 border border-white/10"
-                        value={categoryName}
-                        onChange={(e) => onCategoryChange?.(e.target.value)}
-                        title="Select category"
-                    >
-                        {allCategories.map(c => (
-                            <option key={c.name} value={c.name}>{c.name}</option>
-                        ))}
-                    </select>
+                {/* VALUE */}
+                <div
+                    className="
+            mt-1 text-3xl font-bold text-neutral-900 dark:text-neutral-50
+            transition-all duration-300 animate-in fade-in slide-in-from-bottom-1
+          "
+                >
+                    {loading ? (
+                        <span className="h-7 w-24 bg-neutral-300 dark:bg-neutral-700 animate-pulse rounded inline-block"></span>
+                    ) : (
+                        formattedTotal
+                    )}
+                </div>
 
-                    <select
-                        className="text-xs rounded px-2 py-1 bg-white/60 dark:bg-neutral-800 border border-white/10"
-                        value={metricType}
-                        onChange={(e) => onMetricTypeChange?.(e.target.value as any)}
-                        title="Metric type"
-                    >
-                        <option value="total">Total</option>
-                        <option value="average">Average</option>
-                    </select>
+                {/* PERCENTAGE SUBTITLE */}
+                <div
+                    className="
+            text-xs text-neutral-500 dark:text-neutral-400
+            animate-in fade-in duration-300 delay-100
+          "
+                >
+                    {loading ? (
+                        <span className="h-3 w-24 bg-neutral-300 dark:bg-neutral-700 animate-pulse rounded inline-block"></span>
+                    ) : (
+                        subtitle
+                    )}
                 </div>
             </div>
 
-            {/* chart */}
-            <div className="mt-3 h-24 w-full">
+            {/* RIGHT — CHART */}
+            <div
+                className="
+          w-3/4 h-20 transition-all duration-300
+          animate-in fade-in slide-in-from-right-2
+        "
+            >
                 {loading ? (
-                    <div className="h-full w-full bg-neutral-100 dark:bg-neutral-800 rounded" />
-                ) : data.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                        Not enough data yet
+                    <div className="h-full w-full bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
+                ) : formattedData.length === 0 ? (
+                    <div className="h-full w-full flex items-center justify-center text-xs text-neutral-400">
+                        No data
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data}>
-                            <defs>
-                                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor={categoryColor} stopOpacity={0.28} />
-                                    <stop offset="100%" stopColor={hexToRgba(categoryColor, 0)} stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
+                        <LineChart data={formattedData}>
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                horizontal={false}
+                                vertical={false}
+                            />
 
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={false} />
-                            <Tooltip />
-                            <Area
+                            <XAxis
+                                dataKey="readable"
+                                tick={{ fontSize: 8, fill: "#777" }}
+                                interval={4}
+                            />
+
+                            <Tooltip
+                                contentStyle={{
+                                    background: "rgba(255,255,255,0.9)",
+                                    borderRadius: "6px",
+                                    border: "1px solid #ddd",
+                                    textSizeAdjust: "12px",
+                                }}
+                                formatter={(value: any) => [
+                                    `₱${value.toLocaleString()}`,
+                                    "Amount",
+                                ]}
+                                labelFormatter={(label: any) => `Date: ${label}`}
+                            />
+
+                            <Line
                                 type="monotone"
                                 dataKey="value"
                                 stroke={categoryColor}
-                                fill={`url(#${gradientId})`}
                                 strokeWidth={2}
-                                dot={{ stroke: categoryColor, strokeWidth: 2, r: 4, fill: "#fff" }}
-                                activeDot={{ r: 6 }}
+                                dot={{ r: 0 }}
+                                activeDot={{ r: 5, stroke: categoryColor }}
                             />
-                        </AreaChart>
+                        </LineChart>
                     </ResponsiveContainer>
                 )}
             </div>

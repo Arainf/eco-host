@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\GoalController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,6 +30,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('entrance');
     })->name('entrance');
 
+    Route::get('sustainability', function () {
+        return Inertia::render('sustainability');
+    })->name('sustainability');
+
+    Route::get('activity', function () {
+        return Inertia::render('activity');
+    })->name('activity');
+
 //  CATEGORY
     Route::get('/data/categories', [CategoryController::class, 'index']);
     Route::post('/data/categories', [CategoryController::class, 'store']);
@@ -38,8 +48,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // EXPENSES
     Route::get('/data/expenses', [ExpenseController::class, 'index']);
     Route::post('/data/expenses', [ExpenseController::class, 'store']);
+    Route::put('/data/expenses/{id}', [ExpenseController::class, 'update']);
     Route::post('/data/expenses/import', [ExpenseController::class, 'import']);
     Route::delete('/data/expenses/{id}', [ExpenseController::class, 'destroy']);
+
+    // SUSTAINABILITY GOALS
+// GOALS API
+    Route::get('/data/goals', [GoalController::class, 'index']);
+    Route::post('/data/goals', [GoalController::class, 'store']);
+    Route::put('/data/goals/{id}', [GoalController::class, 'update']);
+    Route::delete('/data/goals/{id}', [GoalController::class, 'destroy']);
+
+    Route::get('/data/activity', [ActivityController::class, 'index']);
+
 
 });
 

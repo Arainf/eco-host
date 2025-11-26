@@ -1,25 +1,22 @@
 "use client"
-import { useEffect, useState, useMemo } from "react"
-import axios from "axios"
-import { toast } from "sonner"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import React, { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { ExpenseNameInput } from '@/components/entrance/expense-name-input';
-import { SubcategorySelect } from '@/components/entrance/subcategory-select';
+import { Label } from "@/components/ui/label"
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
-export function EntranceForm({ refreshRecent }: any) {
-    const [categories, setCategories] = useState([])
-    const [allSubcategories, setAllSubcategories] = useState([])
-    const [recent, setRecent] = useState([])
-
+export default function ExpenseForm({
+                                        categories = [],
+                                        onSave,
+                                        initial,
+                                        onCancel,
+                                    }: any) {
     const today = new Date().toISOString().split("T")[0]
-
     const [form, setForm] = useState({
         expense_name: "",
-        subcategory_id: "",
         subcategory_name: "",
         category_name: "",
         category_color: "",
@@ -29,125 +26,96 @@ export function EntranceForm({ refreshRecent }: any) {
         remarks: "",
     })
 
-    // fetch categories + recent
     useEffect(() => {
-        axios.get("/data/categories").then(res => setCategories(res.data))
-        axios.get("/data/expenses").then(res => setRecent(res.data))
-    }, [])
-
-    // flatten category/subcategory structure
-    useEffect(() => {
-        const flattened = categories.flatMap((c: any) =>
-            c.subcategories.map((s: any) => ({
-                ...s,
-                category_name: c.name,
-                category_color: c.color
-            }))
-        )
-        setAllSubcategories(flattened)
-    }, [categories])
-
-    const handleChange = (field: string, value: any) =>
-        setForm(prev => ({ ...prev, [field]: value }))
-
-    // ⭐ UNIQUE SUGGESTIONS (fix duplicates)
-    const uniqueSuggestions = useMemo(() => {
-        const map = new Map()
-        recent.forEach((r: any) => {
-            if (!map.has(r.expense_name)) {
-                map.set(r.expense_name, r)
-            }
-        })
-        return Array.from(map.values())
-    }, [recent])
-
-    const handleSave = async () => {
-        try {
-            await axios.post("/data/expenses", {
-                expense_name: form.expense_name,
-                subcategory_name: form.subcategory_name,
-                category_name: form.category_name,
-                category_color: form.category_color,
-                description: form.description,
-                amount: form.amount,
-                date: form.date,
-                remarks: form.remarks,
+        if (initial) {
+            setForm({
+                expense_name: initial.expense_name || "",
+                subcategory_name: initial.subcategory_name || "",
+                category_name: initial.category_name || "",
+                category_color: initial.category_color || "",
+                description: initial.description || "",
+                amount: initial.amount || "",
+                date: initial.date ? format(new Date(initial.date), "yyyy-MM-dd") : today,
+                remarks: initial.remarks || "",
             })
-            toast.success("Entry saved!")
-            refreshRecent()
-        } catch {
-            toast.error("Failed")
+        }
+    }, [initial])
+
+    const allSub = categories.flatMap((c: any) =>
+        (c.subcategories || []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            category_name: c.name,
+            category_color: c.color,
+        }))
+    )
+
+    const onSubChange = (val: string) => {
+        const sub = allSub.find((a) => a.id.toString() === val)
+        if (sub) {
+            setForm((p) => ({ ...p, subcategory_name: sub.name, category_name: sub.category_name, category_color: sub.category_color }))
+        } else {
+            setForm((p) => ({ ...p, subcategory_name: "", category_name: "", category_color: "" }))
         }
     }
 
+    const handleSave = () => {
+        if (!form.expense_name || !form.subcategory_name || !form.amount) {
+            toast.error("Name, subcategory and amount required")
+            return
+        }
+        onSave(form)
+    }
+
     return (
-        <Card className="border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
-            <CardHeader>
-                <CardTitle className="text-xl">New Expense</CardTitle>
-            </CardHeader>
+        <div className="space-y-3">
+            <div>
+                <Label>Expense Name</Label>
+                <Input value={form.expense_name} onChange={(e) => setForm({ ...form, expense_name: e.target.value })} />
+            </div>
 
-            <CardContent className="space-y-4">
+            <div>
+                <Label>Subcategory</Label>
+                <Select value={allSub.find(s => s.name === form.subcategory_name)?.id?.toString() ?? ""} onValueChange={onSubChange}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select subcategory" /></SelectTrigger>
+                    <SelectContent>
+                        {allSub.map(s => (
+                            <SelectItem key={s.id} value={s.id.toString()}>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.category_color }} />
+                                    <div>{s.name} <small className="text-xs text-muted-foreground">({s.category_name})</small></div>
+                                </div>
+                            </SelectItem>
+                        ))}
+                        <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
 
-                <ExpenseNameInput
-                    value={form.expense_name}
-                    onChange={(v, suggestion) => {
-                        handleChange("expense_name", v)
+            <div>
+                <Label>Amount</Label>
+                <Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+            </div>
 
-                        if (suggestion) {
-                            handleChange("subcategory_id", suggestion.id)
-                            handleChange("subcategory_name", suggestion.name)
-                            handleChange("category_name", suggestion.category_name)
-                            handleChange("category_color", suggestion.category_color)
-                        }
-                    }}
-                    suggestions={uniqueSuggestions} // ← FIX APPLIED HERE
-                />
+            <div>
+                <Label>Date</Label>
+                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+            </div>
 
-                <SubcategorySelect
-                    allSubcategories={allSubcategories}
-                    form={form}
-                    setForm={setForm}
-                />
+            <div>
+                <Label>Description</Label>
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
 
-                <div>
-                    <Label>Description</Label>
-                    <Textarea
-                        className="mt-1"
-                        value={form.description}
-                        onChange={e => handleChange("description", e.target.value)}
-                    />
-                </div>
+            <div>
+                <Label>Remarks</Label>
+                <Textarea value={form.remarks} onChange={(e) => setForm({ ...form, remarks: e.target.value })} />
+            </div>
 
-                <div>
-                    <Label>Amount</Label>
-                    <Input
-                        type="number"
-                        value={form.amount}
-                        onChange={e => handleChange("amount", e.target.value)}
-                    />
-                </div>
-
-                <div>
-                    <Label>Date</Label>
-                    <Input
-                        type="date"
-                        value={form.date}
-                        onChange={e => handleChange("date", e.target.value)}
-                    />
-                </div>
-
-                <div>
-                    <Label>Remarks</Label>
-                    <Textarea
-                        value={form.remarks}
-                        onChange={e => handleChange("remarks", e.target.value)}
-                    />
-                </div>
-
-                <Button onClick={handleSave} className="w-full">
-                    Save Entry
-                </Button>
-            </CardContent>
-        </Card>
+            <div className="flex gap-2 w-full">
+                <Button onClick={handleSave} className="w-1/2" >Save</Button>
+                <Button variant="outline" onClick={onCancel} className="w-1/2">Cancel</Button>
+            </div>
+        </div>
     )
 }

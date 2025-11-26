@@ -13,7 +13,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
 
     return (
-        <SidebarGroup className="px-2 py-0">
+        <SidebarGroup className="px- py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
@@ -24,38 +24,32 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
                             <SidebarMenuButton
                                 asChild
-                                isActive={
-                                    !isComingSoon &&
-                                    page.url.startsWith(resolveUrl(item.href))
-                                }
+                                isActive={!isComingSoon && page.url.startsWith(resolveUrl(item.href))}
                                 tooltip={{ children: item.title }}
                                 disabled={isComingSoon}
                             >
                                 <Link
-                                    href={isComingSoon ? "#" : item.href}     // ❌ No navigation
-                                    prefetch={!isComingSoon}   // ❌ No prefetch
+                                    href={isComingSoon ? "#" : item.href}
+                                    prefetch={!isComingSoon}
                                     onClick={(e) => {
                                         if (isComingSoon) {
-                                            e.preventDefault();              // ❌ Inertia navigation blocked
+                                            e.preventDefault();
                                             e.stopPropagation();
                                         }
                                     }}
-                                    className="flex items-center justify-between gap-2 opacity-100"
+                                    className="flex items-center gap-2"
                                 >
-                                    {/* Icon + Title */}
-                                    <span className="flex items-center gap-2">
-                                        {item.icon && <item.icon className="h-4 w-4" />}
-                                        <span>{item.title}</span>
-                                    </span>
+                                    {item.icon && <item.icon className="h-4 w-4" />}
+                                    <span className="truncate">{item.title}</span>
 
-                                    {/* 🚧 Coming Soon Badge */}
                                     {isComingSoon && (
-                                        <span className="text-[10px] px-2 py-0.5 bg-orange-500 text-white rounded">
-                                            Soon
-                                        </span>
+                                        <span className="ml-auto text-[10px] px-2 py-0.5 bg-orange-500 text-white rounded">
+                Soon
+            </span>
                                     )}
                                 </Link>
                             </SidebarMenuButton>
+
 
                         </SidebarMenuItem>
                     );

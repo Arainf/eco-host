@@ -10,9 +10,7 @@ import DashboardCategoriesRow from "@/components/dashboard/DashboardCategoriesRo
 import TrendChart from "@/components/dashboard/charts/TrendChart";
 import PieChart from "@/components/dashboard/charts/PieChart";
 import CO2Card from "@/components/dashboard/cards/CO2Card";
-import TopSubcategories from "@/components/dashboard/cards/TopSubcategories";
-import AlertsCard from "@/components/dashboard/cards/AlertsCard";
-import { Button } from "@/components/ui/button";
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: "Overview Summary", href: "/dashboard" },
@@ -22,6 +20,7 @@ export default function Dashboard() {
     const [expenses, setExpenses] = useState<any[]>([])
     const [categories, setCategories] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [data, setData] = useState<any[]>([])
 
     useEffect(() => {
         let mounted = true
@@ -46,21 +45,52 @@ export default function Dashboard() {
         return () => { mounted = false }
     }, [])
 
-    // trend data and breakdown reused from previous implementation
-    const trendData = useMemo(() => {
-        const days = 30
-        const arr: { label: string; value: number }[] = []
-        for (let i = days - 1; i >= 0; i--) {
-            const d = new Date(); d.setDate(d.getDate() - i)
-            const label = `${d.getMonth()+1}/${d.getDate()}`
-            const total = expenses.filter(e => {
-                const ed = new Date(e.date)
-                return ed.getFullYear() === d.getFullYear() && ed.getMonth() === d.getMonth() && ed.getDate() === d.getDate()
-            }).reduce((s,e) => s + Number(e.amount ?? 0), 0)
-            arr.push({ label, value: total })
+    useEffect(() => {
+        async function load() {
+            setLoading(true)
+            try {
+                const res = await axios.get("/data/expenses")
+                const expenses = res.data || []
+
+                // build last 30 days
+                const days = 30
+                const arr: any[] = []
+                for (let i = days - 1; i >= 0; i--) {
+                    const d = new Date()
+                    d.setDate(d.getDate() - i)
+                    const iso = d.toISOString().split("T")[0]
+                    arr.push({ label: iso, value: 0, count: 0 })
+                }
+
+                const idx = (dateStr: string) => arr.findIndex((a) => a.label === dateStr)
+
+                expenses.forEach((e: any) => {
+                    const d = new Date(e.date)
+                    const iso = d.toISOString().split("T")[0]
+                    const i = idx(iso)
+                    if (i >= 0) {
+                        arr[i].value += Number(e.amount ?? 0)
+                        arr[i].count += 1
+                    }
+                })
+
+                // convert label to short month/day for chart if you like
+                const formatted = arr.map((r) => {
+                    const d = new Date(r.label)
+                    const mm = d.getMonth() + 1
+                    const dd = d.getDate()
+                    return { label: `${mm}/${dd}`, value: Math.round(r.value), count: r.count }
+                })
+
+                setData(formatted)
+            } catch (err) {
+                setData([])
+            } finally {
+                setLoading(false)
+            }
         }
-        return arr
-    }, [expenses])
+        load()
+    }, [])
 
     const categoryBreakdown = useMemo(() => {
         const map = new Map<string, { value: number; color?: string }>()
@@ -85,28 +115,15 @@ export default function Dashboard() {
                 {/* charts */}
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="md:col-span-2">
-                        <TrendChart data={trendData} loading={loading} title="Spending Trend (30 days)" />
+                        <TrendChart data={data} loading={loading} title="Spending Trend (30 days)" />
                     </div>
                     <div className="space-y-4">
-                        <PieChart data={categoryBreakdown} loading={loading} title="Spending by Category" />
                         <CO2Card expenses={expenses} loading={loading} />
+                        <PieChart data={categoryBreakdown} loading={loading} title="Spending by Category" />
+
                     </div>
                 </div>
 
-                {/* bottom row */}
-                <div className="grid gap-4 md:grid-cols-3">
-                    <div className="md:col-span-2">
-                        <TopSubcategories expenses={expenses} loading={loading} />
-                    </div>
-                    <div>
-                        <AlertsCard expenses={expenses} loading={loading} />
-                        <div className="mt-4">
-                            <Button variant="outline" size="sm" onClick={() => window.open("/mnt/data/Eco Cost Tracker (Categorization).pdf", "_blank")}>
-                                Help: Categorization guide
-                            </Button>
-                        </div>
-                    </div>
-                </div>
 
             </div>
         </AppLayout>

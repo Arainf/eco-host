@@ -1,23 +1,19 @@
 "use client"
-
-import { useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import Papa from "papaparse"
 import axios from "axios"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
 import { Loader2 } from "lucide-react"
 
-export function CsvImportSection({ refreshRecent }: any) {
-
-    // Coming Soon switch (turn false later)
-    const is_comingSoon = true
-
+export default function CsvImportSection({ refreshRecent }: any) {
     const [loading, setLoading] = useState(false)
-    const [pendingImport, setPendingImport] = useState<any[]>([])
-    const [skipped, setSkipped] = useState<any[]>([])
-    const [showSummary, setShowSummary] = useState(false)
+    const [parsed, setParsed] = useState<any[]>([])
+    const [validRows, setValidRows] = useState<any[]>([])
+    const [errors, setErrors] = useState<string[]>([])
+    const [warnings, setWarnings] = useState<string[]>([])
 
     const REQUIRED_COLUMNS = [
         "expense_name",
@@ -30,176 +26,150 @@ export function CsvImportSection({ refreshRecent }: any) {
         "remarks",
     ]
 
-    const handleFile = (e: any) => {
-        if (is_comingSoon) return            // Disable feature
-        const file = e.target.files[0]
-        if (!file) return
+    const importCsv = (e: any) => {
+        const f = e.target.files[0]
+        if (!f) return
 
         setLoading(true)
-        setShowSummary(false)
+        setErrors([])
+        setWarnings([])
+        setParsed([])
+        setValidRows([])
 
-        Papa.parse(file, {
+        Papa.parse(f, {
             header: true,
             skipEmptyLines: true,
+            complete: async (res: any) => {
+                const rows = res.data
+                setParsed(rows)
 
-            complete: async (result: any) => {
-                const rows = result.data
-                const columns = Object.keys(rows[0] || {})
+                const cols = Object.keys(rows[0] || {})
+                const missing = REQUIRED_COLUMNS.filter(c => !cols.includes(c))
 
-                const missing = REQUIRED_COLUMNS.filter(c => !columns.includes(c))
-                if (missing.length > 0) {
-                    toast.error(`Missing column(s): ${missing.join(", ")}`)
+                if (missing.length) {
+                    setErrors(prev => [...prev, `Missing required columns: ${missing.join(", ")}`])
                     setLoading(false)
                     return
                 }
 
-                const valid: any[] = []
-                const invalid: any[] = []
+                // validate rows
+                const valids: any[] = []
+                let invalidCount = 0
 
-                rows.forEach((row: any) => {
-                    const hasMissing =
-                        REQUIRED_COLUMNS.some(col => !row[col] || row[col] === "")
+                rows.forEach((r: any, idx: number) => {
+                    const rowErrors = []
 
-                    const amountInvalid = isNaN(Number(row.amount))
-                    const dateInvalid = isNaN(new Date(row.date).getTime())
+                    if (!r.expense_name) rowErrors.push("Missing expense_name")
+                    if (!r.subcategory_name) rowErrors.push("Missing subcategory_name")
 
-                    if (hasMissing || amountInvalid || dateInvalid) {
-                        invalid.push(row)
+                    if (r.amount && isNaN(Number(r.amount))) {
+                        rowErrors.push("Amount must be numeric")
+                    }
+
+                    if (r.date && isNaN(new Date(r.date).getTime())) {
+                        rowErrors.push("Invalid date format (must be YYYY-MM-DD)")
+                    }
+
+                    if (rowErrors.length) {
+                        invalidCount++
                     } else {
-                        valid.push(row)
+                        valids.push(r)
                     }
                 })
 
-                let categories = []
-                try {
-                    const res = await axios.get("/data/categories")
-                    categories = res.data
-                } catch {
-                    toast.error("Cannot load categories.")
-                    setLoading(false)
-                    return
+                if (invalidCount > 0) {
+                    setWarnings(prev => [...prev, `${invalidCount} row(s) were skipped due to errors.`])
                 }
 
-                const subMap = new Map()
-                categories.forEach((cat: any) => {
-                    cat.subcategories.forEach((sub: any) => {
-                        subMap.set(sub.name.toLowerCase(), true)
-                    })
-                })
-
-                const filteredValid: any[] = []
-                const invalidSubs: any[] = []
-
-                valid.forEach(row => {
-                    if (subMap.has(row.subcategory_name.toLowerCase())) {
-                        filteredValid.push(row)
-                    } else {
-                        invalidSubs.push(row)
-                    }
-                })
-
-                setPendingImport(filteredValid)
-                setSkipped([...invalid, ...invalidSubs])
-                setShowSummary(true)
+                setValidRows(valids)
                 setLoading(false)
-            },
 
+                e.target.value = ""
+            },
             error: () => {
-                toast.error("Error reading CSV file.")
+                toast.error("Failed to read CSV")
                 setLoading(false)
             },
         })
     }
 
     const confirmImport = async () => {
-        if (is_comingSoon) return            // Disable feature
-
-        if (pendingImport.length === 0) {
-            toast.error("No valid rows to import.")
-            return
-        }
-
-        setLoading(true)
-
         try {
-            await axios.post("/data/expenses/import", {
-                rows: pendingImport
-            })
-            toast.success(`Imported ${pendingImport.length} rows!`)
-            refreshRecent()
-        } catch {
-            toast.error("Import failed.")
-        }
+            setLoading(true)
+            await axios.post("/data/expenses/import", { rows: validRows })
+            toast.success(`Successfully imported ${validRows.length} row(s)`)
+            refreshRecent?.()
 
-        setPendingImport([])
-        setSkipped([])
-        setShowSummary(false)
-        setLoading(false)
+            setParsed([])
+            setValidRows([])
+            setErrors([])
+            setWarnings([])
+        } catch (err) {
+            toast.error("Import failed")
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
-        <Card className="relative">
-
-            {/* Coming Soon Overlay */}
-            {is_comingSoon && (
-                <div className="absolute inset-0 bg-white/80 dark:bg-black/70 backdrop-blur-sm z-10
-                                flex flex-col items-center justify-center rounded-md">
-                    <p className="text-lg font-semibold">CSV Import</p>
-                    <p className="text-sm text-neutral-500">Coming Soon 🚧</p>
-                </div>
-            )}
-
-            {loading && (
-                <div className="absolute inset-0 bg-white/70 dark:bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center rounded-md z-20">
-                    <Loader2 className="animate-spin h-6 w-6 mb-2" />
-                    <p className="text-sm">Processing CSV…</p>
-                </div>
-            )}
-
+        <Card>
             <CardHeader>
                 <CardTitle>Import CSV</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-4">
+                {/* UPLOAD INPUT */}
+                <Input type="file" accept=".csv" onChange={importCsv} disabled={loading} />
 
-                <Input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFile}
-                    disabled={loading || is_comingSoon}
-                    placeholder={is_comingSoon ? "Coming Soon..." : ""}
-                />
-
-                <p className="text-xs text-neutral-500">
-                    Required columns: expense_name, subcategory_name, category_name, category_color,
-                    description, amount, date, remarks
-                </p>
-
-                {showSummary && (
-                    <div className={`rounded-md border p-4 bg-neutral-50 dark:bg-neutral-900 mt-4 space-y-3 ${is_comingSoon ? "opacity-50" : ""}`}>
-
-                        <h3 className="font-semibold text-sm">CSV Summary</h3>
-
-                        <p className="text-sm">
-                            <span className="font-semibold">{pendingImport.length}</span> valid row(s).
-                        </p>
-
-                        {skipped.length > 0 && (
-                            <p className="text-sm text-orange-500">
-                                ⚠ {skipped.length} row(s) skipped.
-                            </p>
-                        )}
-
-                        <Button
-                            onClick={confirmImport}
-                            className="w-full mt-2"
-                            disabled={is_comingSoon}
-                        >
-                            {is_comingSoon ? "Coming Soon 🚧" : "Import Now"}
-                        </Button>
+                {loading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="animate-spin" /> Processing…
                     </div>
                 )}
 
+                {/* ERRORS */}
+                {errors.length > 0 && (
+                    <div className="p-3 text-sm text-red-600 bg-red-100 rounded">
+                        <strong>Errors:</strong>
+                        <ul className="ml-4 list-disc">
+                            {errors.map((e, i) => <li key={i}>{e}</li>)}
+                        </ul>
+                    </div>
+                )}
+
+                {/* WARNINGS */}
+                {warnings.length > 0 && (
+                    <div className="p-3 text-sm text-yellow-700 bg-yellow-100 rounded">
+                        <strong>Warnings:</strong>
+                        <ul className="ml-4 list-disc">
+                            {warnings.map((w, i) => <li key={i}>{w}</li>)}
+                        </ul>
+                    </div>
+                )}
+
+                {/* VALIDATION SUMMARY */}
+                {parsed.length > 0 && validRows.length > 0 && (
+                    <div className="p-3 text-sm bg-neutral-100 dark:bg-neutral-800 rounded">
+                        Loaded: <strong>{parsed.length}</strong> rows
+                        <br />
+                        Valid to import: <strong>{validRows.length}</strong>
+                    </div>
+                )}
+
+                {/* CONFIRM BUTTON */}
+                {validRows.length > 0 && (
+                    <Button
+                        className="w-full"
+                        disabled={loading}
+                        onClick={confirmImport}
+                    >
+                        Import {validRows.length} row(s)
+                    </Button>
+                )}
+
+                <p className="text-xs text-neutral-500">
+                    Required: expense_name, subcategory_name, category_name, category_color, description, amount, date, remarks
+                </p>
             </CardContent>
         </Card>
     )

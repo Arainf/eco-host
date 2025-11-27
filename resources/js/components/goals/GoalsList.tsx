@@ -16,11 +16,16 @@ export default function GoalsList() {
     const load = async () => {
         try {
             setLoading(true)
+
             const [g, c] = await Promise.all([
                 axios.get("/data/goals"),
                 axios.get("/data/categories")
             ])
-            setGoals(Array.isArray(g.data) ? g.data : [])
+
+            // FIXED — extract the actual goals array
+            const raw = g.data
+            setGoals(Array.isArray(raw.goals) ? raw.goals : [])
+
             setCategories(Array.isArray(c.data) ? c.data : [])
         } finally {
             setLoading(false)

@@ -1,108 +1,62 @@
 "use client"
 
-import { useState } from "react"
-import axios from "axios"
-import { toast } from "sonner"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Category } from "./types"
+import React, { useState } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { toast } from "sonner";
 
-export default function GoalCreateDialog({
-                                             categories,
-                                             onSuccess,
-                                         }: {
-    categories: Category[]
-    onSuccess: () => void
-}) {
-    const [open, setOpen] = useState(false)
-    const [form, setForm] = useState({
-        category_name: "",
-        target_pct: "",
-        deadline: "",
-        notes: "",
-    })
+export default function GoalCreateDialog({ categories = [], onSuccess }: any) {
+    const [open, setOpen] = useState(false);
+    const [payload, setPayload] = useState({
+        name: '',
+        description: '',
+        category_name: '',
+        category_color: '',
+        target_amount: 0,
+        deadline: ''
+    });
 
-    const set = (field: string, value: any) =>
-        setForm((prev) => ({ ...prev, [field]: value }))
-
-    const save = async () => {
+    const create = async () => {
         try {
-            await axios.post("/data/goals", form)
-            toast.success("Goal created")
-            setOpen(false)
-            onSuccess()
-        } catch {
-            toast.error("Failed")
+            await axios.post('/data/goals', payload);
+            toast.success('Goal created');
+            setOpen(false);
+            onSuccess?.();
+            setPayload({ name: '', description: '', category_name: '', category_color: '', target_amount: 0, deadline: '' });
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message ?? 'Create failed');
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Add Goal</Button>
+                <Button size="sm">New Goal</Button>
             </DialogTrigger>
+
             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create Sustainability Goal</DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4">
-                    <div>
-                        <Label>Category</Label>
-                        <select
-                            className="w-full mt-1 p-2 border rounded bg-neutral-100 dark:bg-neutral-800"
-                            value={form.category_name}
-                            onChange={(e) => set("category_name", e.target.value)}
-                        >
-                            <option value="">Select category</option>
-                            {categories.map((c) => (
-                                <option key={c.id} value={c.name}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
+                <div className="space-y-3">
+                    <Input placeholder="Goal name" value={payload.name} onChange={(e)=>setPayload({...payload, name: e.target.value})} />
+                    <Input placeholder="Description" value={payload.description} onChange={(e)=>setPayload({...payload, description: e.target.value})} />
+                    <Select value={payload.category_name} onValueChange={(v)=> {
+                        const cat = categories.find((c:any)=>c.name===v);
+                        setPayload({...payload, category_name: v, category_color: cat?.color ?? ''});
+                    }}>
+                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Category"/></SelectTrigger>
+                        <SelectContent>
+                            {categories.map((c:any)=> <SelectItem key={c.id ?? c.name} value={c.name}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Input type="number" placeholder="Target amount (₱)" value={payload.target_amount} onChange={(e)=>setPayload({...payload, target_amount: Number(e.target.value)})} />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={()=>setOpen(false)}>Cancel</Button>
+                        <Button onClick={create}>Create</Button>
                     </div>
-
-                    <div>
-                        <Label>Target Reduction (%)</Label>
-                        <Input
-                            type="number"
-                            value={form.target_pct}
-                            onChange={(e) => set("target_pct", e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <Label>Deadline</Label>
-                        <Input
-                            type="date"
-                            value={form.deadline}
-                            onChange={(e) => set("deadline", e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <Label>Notes</Label>
-                        <Textarea
-                            value={form.notes}
-                            onChange={(e) => set("notes", e.target.value)}
-                        />
-                    </div>
-
-                    <Button onClick={save} className="w-full">
-                        Save Goal
-                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

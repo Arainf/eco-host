@@ -15,6 +15,11 @@ import {
 import Contact from "@/assets/contact.png"
 import { Facebook, Mail  } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Lee from "@/assets/creators/Lee.png";
+import Talib from "@/assets/creators/Talib.png";
+import Jawari from "@/assets/creators/Jawari.png";
+import Ortega from "@/assets/creators/Ortega.png";
+import Toribio from "@/assets/creators/Toribio.png";
 
 export default function Welcome({
     canRegister = true,
@@ -285,7 +290,7 @@ export default function Welcome({
                         <div>
                             <span className="flex flex-col gap-1 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
+                                  <AvatarImage src={Jawari} />
                                   <AvatarFallback>CN</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Fatima Shakina Jawari</p>
@@ -301,7 +306,7 @@ export default function Welcome({
 
                             <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
+                                  <AvatarImage src={Toribio} />
                                   <AvatarFallback>CN</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Edlene Marielle Toribio</p>
@@ -314,7 +319,7 @@ export default function Welcome({
 
                             <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
+                                  <AvatarImage src={Ortega} />
                                   <AvatarFallback>CN</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Shane April Ortega</p>
@@ -327,8 +332,8 @@ export default function Welcome({
 
                             <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
-                                  <AvatarFallback>CN</AvatarFallback>
+                                  <AvatarImage />
+                                  <AvatarFallback>JA</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Jhevylene Abad</p>
                                 <p className="text-xl italic font-medium text-[#90caf9] mt-[-5px]">Researcher</p>
@@ -345,8 +350,8 @@ export default function Welcome({
                         <div className="flex flex-row  w-full ">
                               <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
-                                  <AvatarFallback>CN</AvatarFallback>
+                                  <AvatarImage  />
+                                  <AvatarFallback>JA</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Jasmine Claire Austero</p>
                                 <p className="text-xl italic font-medium text-[#90caf9] mt-[-5px]">Researcher</p>
@@ -358,7 +363,7 @@ export default function Welcome({
 
                             <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
+                                  <AvatarImage src={Talib} />
                                   <AvatarFallback>CN</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Nashry Jay Talib</p>
@@ -371,7 +376,7 @@ export default function Welcome({
 
                             <span className="flex flex-col gap-1 flex-1/2 items-center">
                                 <Avatar className="h-18 w-18">
-                                  <AvatarImage src="https://github.com/shadcn.png" />
+                                  <AvatarImage src={Lee} />
                                   <AvatarFallback>CN</AvatarFallback>
                                 </Avatar>
                                 <p className="text-2xl font-bold text-white">Liam Shawn Cole Lee</p>

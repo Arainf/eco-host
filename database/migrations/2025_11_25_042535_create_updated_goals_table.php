@@ -7,13 +7,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        Schema::dropIfExists('goals'); // recreate cleanly (BE CAREFUL in prod)
+
         Schema::create('goals', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('user_id');
+            $table->string('name')->nullable(false);
+            $table->text('description')->nullable();
             $table->string('category_name');        // from categories table name
-            $table->integer('target_pct');          // target reduction percentage
-            $table->float('current_pct')->default(0); // calculated automatically
+            $table->string('category_color')->nullable();
+            $table->decimal('target_amount', 14, 2); // target value (₱ or unit)
+            $table->decimal('current_amount', 14, 2)->default(0); // computed from expenses
+            $table->enum('status', ['pending','on_target','over_target','completed'])->default('pending');
             $table->date('deadline')->nullable();
             $table->text('notes')->nullable();
 

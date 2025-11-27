@@ -31,17 +31,8 @@ export default function ActivityPage() {
     return (
         <AppLayout breadcrumbs={[{ title: "Activity Log", href: "/activity" }]}>
             <Head title="Activity Log" />
-            <div className="p-4 max-w-7xl mx-auto space-y-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Activity Log</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            Record of edits, deletions and creations. Each entry shows a readable summary — expand any row to view full JSON.
-                        </p>
-                    </CardContent>
-                </Card>
+            <div className="p-4 w-full mx-auto space-y-4">
+
 
                 <Card>
                     <CardContent>

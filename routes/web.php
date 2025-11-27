@@ -4,6 +4,8 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\UserManagementController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,16 +17,22 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+//Route::middleware(['auth', 'admin'])->group(function () {
+//    Route::get('categories', function () {
+//        return Inertia::render('categories');
+//    })->name('categories');
+//
+//    Route::get('management', function () {
+//        return Inertia::render('user-management');
+//    })->name('management');
+//});
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
 //  VIEWS
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-
-    Route::get('categories', function () {
-        return Inertia::render('categories');
-    })->name('categories');
 
     Route::get('entrance', function () {
         return Inertia::render('entrance');
@@ -37,6 +45,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('activity', function () {
         return Inertia::render('activity');
     })->name('activity');
+
+    Route::get('categories', function () {
+        return Inertia::render('categories');
+    })->name('categories');
+
+    Route::get('management', function () {
+        return Inertia::render('user-management');
+    })->name('management');
+
+    Route::get('reports', function () {
+        return Inertia::render('reports');
+    })->name('reports');
+
+    Route::get('help', function () {
+        return Inertia::render('help');
+    })->name('help');
+
 
 //  CATEGORY
     Route::get('/data/categories', [CategoryController::class, 'index']);
@@ -59,9 +84,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/data/goals/{id}', [GoalController::class, 'update']);
     Route::delete('/data/goals/{id}', [GoalController::class, 'destroy']);
 
+
+
     Route::get('/data/activity', [ActivityController::class, 'index']);
 
+    Route::get('/data/users', [UserManagementController::class, 'index']);
+    Route::post('/data/users', [UserManagementController::class, 'store']);
+    Route::put('/data/users/{id}', [UserManagementController::class, 'update']);
+    Route::delete('/data/users/{id}', [UserManagementController::class, 'destroy']);
 
+
+    Route::get('/data/reports/semester', [ReportsController::class, 'semester']);
+    Route::post('/data/reports/export', [ReportsController::class, 'export']); // returns PDF download
 });
 
 

@@ -81,7 +81,7 @@ export default function EntrancePage() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Entry" />
 
-            <div className="p-6 max-w-[1500px] mx-auto space-y-6">
+            <div className="p-6 w-full mx-auto space-y-6">
                 <div className="flex items-center justify-between gap-4 w-full">
                     <div className="flex items-center gap-3 flex-2/3">
                         <ExpenseFilters

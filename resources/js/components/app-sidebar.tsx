@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { categories, dashboard, entrance, sustainability, activity } from '@/routes';
+import { categories, dashboard, entrance, sustainability, activity, management, reports, help } from '@/routes';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {LayoutGrid, Database,LibraryBig , ChartColumnDecreasing , Goal , History , BookUser   } from 'lucide-react';
@@ -35,15 +35,13 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Reports & Analytics',
-        href: dashboard(),
+        href: reports(),
         icon: ChartColumnDecreasing,
-        comingSoon: true
     },
     {
         title: 'Sustainability Goals',
         href: sustainability(),
         icon: Goal,
-        comingSoon: true
     },
     {
         title: 'Activity Log',
@@ -52,15 +50,14 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'User Management',
-        href: dashboard(),
+        href: management(),
         icon: BookUser,
-        comingSoon: true
     },
     {
         title: 'Help / Resources',
-        href: dashboard(),
+        href: help(),
         icon: CircleQuestionIcon,
-        comingSoon: true
+
     },
 ];
 
@@ -71,7 +68,7 @@ export function AppSidebar() {
 
     const allowedItems = mainNavItems.filter((item) => {
         // Items restricted to admins
-        const adminOnly = ['Categories', 'User Management', 'Activity Log'];
+        const adminOnly = ['Categories', 'User Management'];
 
         // If user is NOT admin, hide admin-only items
         return !(!auth?.user?.is_admin && adminOnly.includes(item.title));

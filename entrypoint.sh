@@ -2,13 +2,19 @@
 set -e
 
 # ---------------------------------------------
-# Fix permissions (your original working logic)
+# Fix permissions
 # ---------------------------------------------
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
 
 # ---------------------------------------------
-# Wait for Railway MySQL connection
+# CLEAR CONFIG CACHE BEFORE ANYTHING
+# ---------------------------------------------
+php artisan config:clear || true
+php artisan cache:clear || true
+
+# ---------------------------------------------
+# Wait for Railway DB
 # ---------------------------------------------
 echo "Waiting for MySQL on Railway..."
 
@@ -19,8 +25,7 @@ try {
         ';port=' . getenv('DB_PORT') .
         ';dbname=' . getenv('DB_DATABASE'),
         getenv('DB_USERNAME'),
-        getenv('DB_PASSWORD'),
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        getenv('DB_PASSWORD')
     );
     exit(0);
 } catch (Exception \$e) {
@@ -34,19 +39,19 @@ done
 echo "Database connected!"
 
 # ---------------------------------------------
-# Run Laravel migrations safely
+# RUN MIGRATIONS USING LIVE MYSQL
 # ---------------------------------------------
-echo "Running migrations..."
-php artisan migrate --force || echo "Migrations failed (ignored)."
+echo "Running migrations with MySQL..."
+php artisan migrate --force
 
 # ---------------------------------------------
-# Laravel caches for faster performance
+# CACHE EVERYTHING FOR SPEED
 # ---------------------------------------------
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 # ---------------------------------------------
-# Continue to supervisord (your original behavior)
+# Start Supervisor
 # ---------------------------------------------
 exec "$@"

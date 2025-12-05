@@ -11,10 +11,7 @@
         @page {
             margin: 110px 45px 70px 45px;
         }
-
-        @page:first {
-            margin: 0 !important;
-        }
+        @page:first { margin: 0 !important; }
 
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -31,64 +28,55 @@
             top: -80px;
             left: 0;
             right: 0;
-
             height: 70px;
-            padding-bottom: 8px;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
 
             border-bottom: 1px solid #ccc;
+            padding-bottom: 8px;
             visibility: hidden;
         }
+        body:not(:first-child) header { visibility: visible !important; }
 
-        body:not(:first-child) header {
-            visibility: visible !important;
-        }
-
-        header img {
-            height: 50px;
-        }
+        header img { height: 50px; }
 
         .header-meta {
             text-align: right;
-            font-size: 12px;
         }
-
         .header-meta-title {
             font-weight: bold;
             font-size: 14px;
         }
+        .header-meta-user {
+            font-size: 10px;
+            margin-top: 2px;
+            color: #666;
+        }
 
         /* ================================================================
-           FOOTER (Hidden on Cover)
+           FOOTER
         ================================================================ */
         footer {
             position: fixed;
             bottom: -50px;
             left: 0;
             right: 0;
-
             height: 40px;
+
             border-top: 1px solid #ccc;
 
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
 
             font-size: 11px;
             color: #555;
             visibility: hidden;
         }
-
-        body:not(:first-child) footer {
-            visibility: visible !important;
-        }
-
-        .page-number:after {
-            content: counter(page);
-        }
+        body:not(:first-child) footer { visibility: visible !important; }
+        .page-number:after { content: counter(page); }
 
         /* ================================================================
            COVER PAGE
@@ -98,34 +86,37 @@
             padding-top: 160px;
             page-break-after: always;
         }
-
         .cover-logo {
             width: 220px;
             margin-bottom: 30px;
         }
-
         .cover-title {
             font-size: 34px;
             font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
             color: #1a4d1a;
+            margin-bottom: 10px;
         }
-
         .cover-sub {
             font-size: 20px;
-            margin-bottom: 30px;
-            color: #333;
+            margin-bottom: 25px;
         }
-
         .cover-meta {
             font-size: 14px;
-            color: #666;
+            color: #555;
             line-height: 1.6;
         }
 
+        .user-block {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #444;
+        }
+        .user-block strong {
+            color: #222;
+        }
+
         /* ================================================================
-           SECTION HEADER
+           SECTION TITLE
         ================================================================ */
         .section-title {
             font-size: 16px;
@@ -137,14 +128,13 @@
         }
 
         /* ================================================================
-           TABLE STYLES
+           TABLES
         ================================================================ */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 16px;
         }
-
         th {
             background: #2f7d32;
             color: white;
@@ -153,31 +143,18 @@
             border: none;
             text-align: left;
         }
-
         td {
             padding: 7px 10px;
             font-size: 11px;
-            border: none;
         }
-
-        tr:nth-child(even) td {
-            background: #f5faf4;
-        }
-
+        tr:nth-child(even) td { background: #f5faf4; }
         .amount {
             font-weight: bold;
             color: #1f5e20;
             text-align: right;
         }
 
-        .subtle {
-            color: #777;
-        }
-
-        /* Expense table should remain clean and compact */
-        .expenses-table td {
-            font-size: 10px;
-        }
+        .expenses-table td { font-size: 10px; }
     </style>
 </head>
 
@@ -194,13 +171,17 @@
 
     <div class="cover-meta">
         <strong>Reporting Period:</strong><br>
-        {{ $data['meta']['start'] }} &nbsp;–&nbsp; {{ $data['meta']['end'] }} <br><br>
+        {{ $data['meta']['start'] }} – {{ $data['meta']['end'] }}<br><br>
 
         <strong>Date Generated:</strong><br>
-        {{ now()->format('F d, Y') }} <br><br>
+        {{ now()->format('F d, Y') }}<br><br>
 
-        <strong>Prepared By:</strong><br>
-        EcoCost Automated Sustainability System
+        <div class="user-block">
+            <strong>Prepared By:</strong><br>
+            {{ auth()->user()->name }}<br>
+            {{ auth()->user()->email }}<br>
+            Organization: Ateneo de Zamboanga University — EntreHub
+        </div>
     </div>
 </div>
 
@@ -213,6 +194,9 @@
         <div class="header-meta-title">
             Semester Report — S{{ $data['meta']['semester'] }} {{ $data['meta']['year'] }}
         </div>
+        <div class="header-meta-user">
+            {{ auth()->user()->name }} • {{ auth()->user()->email }}
+        </div>
         <div class="subtle">
             {{ $data['meta']['start'] }} to {{ $data['meta']['end'] }}
         </div>
@@ -220,7 +204,7 @@
 </header>
 
 <footer>
-    <div>EcoCost • Sustainability & Expense Monitoring</div>
+    <div>EcoCost • Sustainability Monitoring System</div>
     <div>Page <span class="page-number"></span></div>
 </footer>
 
@@ -231,7 +215,6 @@
 
     <!-- EXEC SUMMARY -->
     <div class="section-title">Executive Summary</div>
-
     <table>
         <tr>
             <th style="width:40%">Total Spending</th>
@@ -245,6 +228,10 @@
             <th>Top Category</th>
             <td>{{ $data['summary']['highest_category'] ?? '—' }}</td>
         </tr>
+        <tr>
+            <th>Report Prepared By</th>
+            <td>{{ auth()->user()->name }} ({{ auth()->user()->email }})</td>
+        </tr>
     </table>
 
     <!-- CATEGORY BREAKDOWN -->
@@ -253,7 +240,6 @@
         <thead>
         <tr><th>Category</th><th>Total Amount</th></tr>
         </thead>
-
         <tbody>
         @foreach ($data['by_category'] as $c)
             <tr>
@@ -270,7 +256,6 @@
         <thead>
         <tr><th>Month</th><th>Amount</th></tr>
         </thead>
-
         <tbody>
         @foreach ($data['monthly'] as $m)
             <tr>
@@ -287,7 +272,6 @@
         <thead>
         <tr><th>Subcategory</th><th>Total Amount</th></tr>
         </thead>
-
         <tbody>
         @foreach ($data['top_subcategories'] as $s)
             <tr>

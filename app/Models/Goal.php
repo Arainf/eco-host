@@ -10,12 +10,10 @@ class Goal extends Model
         'user_id',
         'name',
         'description',
-        'category_name',
-        'category_color',
-        'target_amount',
-        'current_amount',
-        'status',
+        'metric_key',
+        'target_min_pct',
+        'target_max_pct',
         'deadline',
-        'notes',
+        'unit'
     ];
 }

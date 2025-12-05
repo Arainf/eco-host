@@ -33,9 +33,9 @@ export default function GoalCreateDialog({ categories = [], onSuccess }: any) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button size="sm">New Goal</Button>
-            </DialogTrigger>
+            {/*<DialogTrigger asChild>*/}
+            {/*    <Button size="sm">New Goal</Button>*/}
+            {/*</DialogTrigger>*/}
 
             <DialogContent>
                 <div className="space-y-3">

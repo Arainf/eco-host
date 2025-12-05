@@ -18,6 +18,7 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select"
+import { getShadeForIndex} from '@/components/dashboard/utils/colors';
 
 import { toast } from "sonner"
 
@@ -30,6 +31,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: "Reports & Analytics", href: "/reports" },
 ]
 
+
+
 export default function ReportsPage() {
     const yearNow = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
@@ -39,6 +42,8 @@ export default function ReportsPage() {
     const [semester, setSemester] = useState(defaultSem)
     const [loading, setLoading] = useState(false)
     const [report, setReport] = useState<any>(null)
+
+
 
     // Load report
     useEffect(() => { load() }, [year, semester])
@@ -82,6 +87,78 @@ export default function ReportsPage() {
     const topSubs = report?.top_subcategories ?? []
 
     const peso = (v: any) => `₱${Number(v || 0).toLocaleString()}`
+
+
+    // group expenses by subcategory for Energy
+    function buildEnergySubBreakdown() {
+        if (!report?.expenses) return []
+
+        // get category color
+        const cat = categories.find(c =>
+            c.name.toLowerCase().includes("energy")
+        )
+        const baseColor = cat?.color ?? "#FF7A00"
+
+        // group by subcategory
+        const raw = Object.values(
+            report.expenses
+                .filter(e => e.category_name.toLowerCase().includes("energy"))
+                .reduce((acc: any, e: any) => {
+                    const key = e.subcategory_name || "Uncategorized"
+                    acc[key] = acc[key] || { name: key, value: 0 }
+                    acc[key].value += Number(e.amount)
+                    return acc
+                }, {})
+        )
+
+        // apply beautiful color shading
+        return raw.map((item: any, idx: number) => ({
+            ...item,
+            color: getShadeForIndex(idx, raw.length, baseColor),
+        }))
+    }
+
+// last 30 days water usage trend
+    function buildWaterTrend30Days() {
+        if (!report?.expenses) return [];
+
+        const today = new Date();
+        const past30 = new Date();
+        past30.setDate(today.getDate() - 30);
+
+        const rows: any = {};
+
+        report.expenses
+            .filter(e => e.category_name.toLowerCase().includes("water"))
+            .forEach(e => {
+                const d = new Date(e.date);
+                if (d >= past30 && d <= today) {
+                    const key = e.date.slice(0, 10);
+                    rows[key] = (rows[key] || 0) + Number(e.amount);
+                }
+            });
+
+        return Object.keys(rows)
+            .sort()
+            .map(day => ({ label: day, value: rows[day] }));
+    }
+
+// waste expenses per month
+    function buildWasteAnalysis() {
+        if (!report?.expenses) return [];
+
+        return months.map((m: any) => {
+            const total = report.expenses
+                .filter(e => e.category_name.toLowerCase().includes("waste"))
+                .filter(e => e.date.startsWith(m.year + "-" + m.month)) // if m contains year/month
+                .reduce((s, e) => s + Number(e.amount), 0);
+
+            return { label: m.label, value: total };
+        });
+    }
+
+
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -128,9 +205,6 @@ export default function ReportsPage() {
 
                     {/* LEFT = Trend Chart (2 cols) */}
                     <Card className="md:col-span-2 flex flex-col">
-                        <CardHeader>
-                            <CardTitle>Monthly Trend</CardTitle>
-                        </CardHeader>
                         <CardContent className="flex-1 p-4">
                             <TrendChart
                                 data={months.map((m: any) => ({
@@ -138,7 +212,7 @@ export default function ReportsPage() {
                                     value: m.amount,
                                 }))}
                                 loading={loading}
-                                title=""
+                                title="Semester Trend"
                             />
                         </CardContent>
                     </Card>
@@ -243,6 +317,68 @@ export default function ReportsPage() {
                     </Card>
 
                 </div>
+
+                {/* -------------------------------------------------- */}
+                {/* ENERGY COST BREAKDOWN */}
+                {/* -------------------------------------------------- */}
+                <div className="grid md:grid-cols-3 gap-4">
+
+                    {/* ENERGY */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Energy Cost Breakdown</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {buildEnergySubBreakdown().length === 0 ? (
+                                <div className="text-sm text-neutral-500">No energy data available</div>
+                            ) : (
+                                <PieChart
+                                    data={buildEnergySubBreakdown()}
+                                    loading={loading}
+                                    title=""
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* WATER */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Water Consumption Trend (Last 30 Days)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {buildWaterTrend30Days().length === 0 ? (
+                                <div className="text-sm text-neutral-500">No recent water data</div>
+                            ) : (
+                                <TrendChart
+                                    data={buildWaterTrend30Days()}
+                                    loading={loading}
+                                    title=""
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* WASTE */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Waste Disposal Cost Analysis</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {buildWasteAnalysis().length === 0 ? (
+                                <div className="text-sm text-neutral-500">No waste data available</div>
+                            ) : (
+                                <TrendChart
+                                    data={buildWasteAnalysis()}
+                                    loading={loading}
+                                    title=""
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+
+                </div>
+
 
             </div>
         </AppLayout>

@@ -20,6 +20,9 @@ import Talib from "@/assets/creators/Talib.png";
 import Jawari from "@/assets/creators/Jawari.png";
 import Ortega from "@/assets/creators/Ortega.png";
 import Toribio from "@/assets/creators/Toribio.png";
+import Pic1 from "@/assets/pic-1.jpg";
+import Pic2 from "@/assets/pic-2.jpg";
+import Pic3 from "@/assets/pic-3.jpg";
 
 export default function Welcome({
     canRegister = true,
@@ -177,9 +180,12 @@ export default function Welcome({
                                 <p className="text-2xl ">Real-time expenses visualization</p>
                                 <CardDescription className="text-white font-xs">Instant insights into your environment and financial performance</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-[1.5] bg-[#4a5f48] rounded-tr-lg rounded-br-lg ">
-
+                            <CardContent
+                                className="flex-[1.5] bg-[#4a5f48] rounded-tr-lg rounded-br-lg"
+                                style={{ backgroundImage: `url(${Pic1})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                            >
                             </CardContent>
+
                         </Card>
 
 
@@ -189,7 +195,7 @@ export default function Welcome({
                                 <p className="text-3xl ">Comprehensive analytics</p>
                                 <CardDescription className="text-white font-xs">Generate detailed reports with actionable sustainability metrics</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-[1.5] bg-[#4a5f48] rounded-bl-lg rounded-br-lg ">
+                            <CardContent className="flex-[1.5] bg-[#4a5f48] rounded-bl-lg rounded-br-lg "  style={{ backgroundImage: `url(${Pic2})`, backgroundSize: "cover", backgroundPosition: "center" }}>
 
                             </CardContent>
 
@@ -201,7 +207,7 @@ export default function Welcome({
                                 <p className="text-3xl ">Seamless data management</p>
                                 <CardDescription className="text-white font-xs">Easily import and export data across multiple platforms</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-[1.5] bg-[#4a5f48] rounded-bl-lg rounded-br-lg ">
+                            <CardContent className="flex-[1.5] bg-[#4a5f48] rounded-bl-lg rounded-br-lg "  style={{ backgroundImage: `url(${Pic3})`, backgroundSize: "cover", backgroundPosition: "center" }}>
 
                             </CardContent>
 
@@ -266,6 +272,89 @@ export default function Welcome({
 
                     </div>
                 </div>
+
+                {/* REPORTS & ANALYTICS SECTION */}
+                <div
+                    id="reports"
+                    className="flex flex-col w-full min-h-[100vh] text-[#1b1b18] gap-10 items-center justify-start bg-[#F7F1DE] p-24"
+                >
+                    {/* Section Header */}
+                    <div className="flex flex-col justify-center items-center gap-3">
+                        <h6 className="font-bold text-md text-[#2B4328]">Analyze</h6>
+                        <h6 className="text-6xl font-semibold text-center text-[#2B4328]">
+                            Reports & Analytics
+                        </h6>
+                        <p className="text-md text-[#1b1b18] italic">
+                            See where your resources go — and where you can save.
+                        </p>
+                    </div>
+
+                    {/* 2×2 CARD GRID */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 w-[90vw]">
+
+                        {/* ENERGY COST BREAKDOWN */}
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold">Energy Cost Breakdown</CardTitle>
+                            </CardHeader>
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/energy.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card>
+
+                        {/* WATER CONSUMPTION TREND */}
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold">Water Consumption Trend</CardTitle>
+                            </CardHeader>
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/water.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card>
+
+                        {/* WASTE DISPOSAL COST ANALYSIS */}
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold">Waste Disposal Cost Analysis</CardTitle>
+                            </CardHeader>
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/waste.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card>
+
+                        {/* SUSTAINABILITY SCORE TRENDLINE */}
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold">Sustainability Score Trendline</CardTitle>
+                            </CardHeader>
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/sustainability.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card>
+
+                    </div>
+                </div>
+
 
                 {/* CONTACT SECTION */}
                 <div id="contact" className="flex flex-col w-full min-h-[100vh] text-black gap-6 items-center justify-start bg-[#2B4328] p-24"

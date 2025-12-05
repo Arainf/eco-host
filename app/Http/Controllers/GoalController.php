@@ -25,20 +25,20 @@ class GoalController extends Controller
     // CREATE goal (value-based)
     public function store(Request $request)
     {
+        // inside store validation
         $validated = $request->validate([
-            'name'            => 'required|string|max:255',
-            'description'     => 'nullable|string',
-            'category_name'   => 'required|string|max:255',
-            'category_color'  => 'nullable|string|max:20',
-            'target_amount'   => 'required|numeric|min:0.01',
-            'deadline'        => 'nullable|date',
-            'notes'           => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'metric_key' => 'required|string',
+            'target_min_pct' => 'nullable|integer|min:0|max:100',
+            'target_max_pct' => 'nullable|integer|min:0|max:100',
+            'deadline' => 'nullable|date',
+            'unit' => 'nullable|string|max:10',
         ]);
 
         $validated['user_id'] = auth()->id();
-        $validated['current_amount'] = 0;
-
         $goal = Goal::create($validated);
+
 
         return response()->json([
             'message' => 'Goal created successfully.',
@@ -51,19 +51,18 @@ class GoalController extends Controller
     {
         $goal = Goal::where('user_id', auth()->id())->findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'category_name' => 'sometimes|string|max:255',
-            'category_color' => 'nullable|string|max:20',
-            'target_amount' => 'sometimes|numeric|min:0.01',
-            'deadline' => 'nullable|date',
-            'notes' => 'nullable|string',
-        ]);
 
-        $goal->update($validated);
+        $goal->update($request->only([
+            'name',
+            'description',
+            'metric_key',
+            'target_min_pct',
+            'target_max_pct',
+            'deadline',
+            'unit'
+        ]));
 
-        return response()->json(['message' => 'Goal updated.']);
+        return response()->json(['message' => 'Goal updated.', 'goal' => $goal]);
     }
 
     // DELETE goal

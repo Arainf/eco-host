@@ -15,7 +15,9 @@ echo "Waiting for MySQL on Railway..."
 until php -r "
 try {
     new PDO(
-        getenv('DB_CONNECTION') . ':host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_DATABASE'),
+        'mysql:host=' . getenv('DB_HOST') .
+        ';port=' . getenv('DB_PORT') .
+        ';dbname=' . getenv('DB_DATABASE'),
         getenv('DB_USERNAME'),
         getenv('DB_PASSWORD'),
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]

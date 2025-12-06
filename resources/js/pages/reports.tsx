@@ -147,14 +147,34 @@ export default function ReportsPage() {
     function buildWasteAnalysis() {
         if (!report?.expenses) return [];
 
-        return months.map((m: any) => {
-            const total = report.expenses
-                .filter(e => e.category_name.toLowerCase().includes("waste"))
-                .filter(e => e.date.startsWith(m.year + "-" + m.month)) // if m contains year/month
-                .reduce((s, e) => s + Number(e.amount), 0);
+        const today = new Date();
+        const past30 = new Date();
+        past30.setDate(today.getDate() - 30);
 
-            return { label: m.label, value: total };
-        });
+        const rows: any = {};
+
+        report.expenses
+            .filter(e => e.category_name.toLowerCase().includes("waste"))
+            .forEach(e => {
+                const d = new Date(e.date);
+                if (d >= past30 && d <= today) {
+                    const key = e.date.slice(0, 10);
+                    rows[key] = (rows[key] || 0) + Number(e.amount);
+                }
+            });
+
+        return Object.keys(rows)
+            .sort()
+            .map(day => ({ label: day, value: rows[day] }));
+
+        // return months.map((m: any) => {
+        //     const total = report.expenses
+        //         .filter(e => e.category_name.toLowerCase().includes("waste"))
+        //         .filter(e => e.date.startsWith(m.year + "-" + m.month)) // if m contains year/month
+        //         .reduce((s, e) => s + Number(e.amount), 0);
+
+        //     return { label: m.label, value: total };
+        // });
     }
 
 

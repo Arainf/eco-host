@@ -1,7 +1,7 @@
 import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import logo from "../assets/Sys_logo.png";
+import logo from "../assets/logo (2).png";
 import Small_Logo from "../assets/ECO COST (1).png";
 import Bg_logo from "../assets/Hero_Background.png"
 import Leaf from "../assets/leaf.png"
@@ -23,6 +23,10 @@ import Toribio from "@/assets/creators/Toribio.png";
 import Pic1 from "@/assets/pic-1.jpg";
 import Pic2 from "@/assets/pic-2.jpg";
 import Pic3 from "@/assets/pic-3.jpg";
+import monthly from "@/assets/ECO TRACKER Website.png";
+import linechart from "@/assets/ECO TRACKER Website (1).png";
+import linechart2 from "@/assets/ECO TRACKER Website (2).png";
+import kpi from "@/assets/ECO TRACKER Website (3).png";
 
 export default function Welcome({
     canRegister = true,
@@ -70,7 +74,7 @@ export default function Welcome({
                         </Link>
 
                             <Link
-                                 href="#a"
+                                 href="#reports"
                                  className="inline-block rounded-sm  hover:scale-120 transition ease-in-out   px-5 py-1.5 text-sm leading-normal text-white"
                              >
                         Reports
@@ -152,7 +156,7 @@ export default function Welcome({
 
                         {/* RIGHT: Image */}
                         <div className="flex-[1] flex justify-center lg:justify-end">
-                            <img src={logo} alt="EcoCost Logo" className="w-full max-w-md lg:max-w-lg h-auto" />
+                            <img src={logo} alt="EcoCost Logo" className="w-full max-w-md lg:max-w-lg h-auto scale-200" />
                         </div>
 
                     </div>
@@ -292,36 +296,132 @@ export default function Welcome({
                     {/* 2×2 CARD GRID */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 w-[90vw]">
 
-                        {/* ENERGY COST BREAKDOWN */}
-                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                      {/* ENERGY COST BREAKDOWN */}
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] rounded-3xl overflow-hidden shadow-md">
                             <CardHeader className="bg-[#F7F1DE]">
-                                <CardTitle className="text-xl font-semibold">Energy Cost Breakdown</CardTitle>
+                                <CardTitle className="text-xl font-semibold text-[#1b1b18]">
+                                    Monthly Cost Breakdown
+                                </CardTitle>
                             </CardHeader>
-                        
+
+                            <CardContent className="relative h-[220px] bg-[#4a5f48] p-0">
+                                {/* Image */}
+                                <img
+                                    src={monthly}
+                                    alt="Monthly cost breakdown chart"
+                                    className="w-full h-full object-cover"
+                                />
+
+                                {/* Optional dark overlay for readability */}
+                                <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                            </CardContent>
                         </Card>
 
+
                         {/* WATER CONSUMPTION TREND */}
-                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                        {/* <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Water Consumption Trend</CardTitle>
                             </CardHeader>
-                     
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/water.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card> */}
+
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] rounded-3xl overflow-hidden shadow-md">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold text-[#1b1b18]">
+                                    Water Consumption Trend
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent className="relative h-[220px] bg-[#4a5f48] p-0">
+                                {/* Image */}
+                                <img
+                                    src={linechart}
+                                    alt="Monthly cost breakdown chart"
+                                    className="w-full h-full object-cover"
+                                />
+
+                                {/* Optional dark overlay for readability */}
+                                <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                            </CardContent>
                         </Card>
 
                         {/* WASTE DISPOSAL COST ANALYSIS */}
-                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                        {/* <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
                             <CardHeader className="bg-[#F7F1DE]">
-                                <CardTitle className="text-xl font-semibold">Waste Disposal Cost Analysis</CardTitle>
+                                <CardTitle className="text-xl font-semibold">Waste Disposal Cost Trendline</CardTitle>
                             </CardHeader>
-                        
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/waste.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card> */}
+
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] rounded-3xl overflow-hidden shadow-md">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold text-[#1b1b18]">
+                                Waste Disposal Cost Trendline
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent className="relative h-[220px] bg-[#4a5f48] p-0">
+                                {/* Image */}
+                                <img
+                                    src={linechart2}
+                                    alt="Monthly cost breakdown chart"
+                                    className="w-full h-full object-cover"
+                                />
+
+                                {/* Optional dark overlay for readability */}
+                                <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                            </CardContent>
                         </Card>
+                        
 
                         {/* SUSTAINABILITY SCORE TRENDLINE */}
-                        <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
+                        {/* <Card className="flex flex-col bg-transparent border-[#4a5f48] text-[#1b1b18] rounded-3xl overflow-hidden">
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Sustainability Score Trendline</CardTitle>
                             </CardHeader>
-                
+                            <CardContent
+                                className="h-[220px] bg-[#4a5f48]"
+                                style={{
+                                    backgroundImage: `url('/images/reports/sustainability.jpg')`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                }}
+                            />
+                        </Card> */}
+
+                        <Card className="flex flex-col bg-transparent border-[#4a5f48] rounded-3xl overflow-hidden shadow-md">
+                            <CardHeader className="bg-[#F7F1DE]">
+                                <CardTitle className="text-xl font-semibold text-[#1b1b18]">
+                                Sustainability Score Trendline
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent className="relative h-[220px] bg-[#4a5f48] p-0">
+                                {/* Image */}
+                                <img
+                                    src={kpi}
+                                    alt="Monthly cost breakdown chart"
+                                    className="w-full h-full object-cover"
+                                />
+
+                                {/* Optional dark overlay for readability */}
+                                <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+                            </CardContent>
                         </Card>
 
                     </div>

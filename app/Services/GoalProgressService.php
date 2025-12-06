@@ -73,7 +73,7 @@ class GoalProgressService
         // sustainable purchases: assume categories flagged earlier: we try to compute proportion
         // For simplicity: if categories table has 'is_sustainable' flag it's ideal.
         // Without that, fallback: any category named 'Eco', 'Sustainable', 'Green' counts.
-        $sustainableKeywords = ['Supplies and Inventory (ingredients, materials)','Packaging Waste','Waste Bags','Eco-friendly / Recyclable Packaging','Reusable Containers', 'Sustainable Ingredients'];
+        $sustainableKeywords = ['Waste Management','Supplies and Inventory (ingredients, materials)','Packaging Waste','Waste Bags','Eco-friendly / Recyclable Packaging','Reusable Containers', 'Sustainable Ingredients'];
 
         $currSustainable = 0;
         $prevSustainable = 0;

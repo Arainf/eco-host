@@ -297,14 +297,7 @@ export default function Welcome({
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Energy Cost Breakdown</CardTitle>
                             </CardHeader>
-                            <CardContent
-                                className="h-[220px] bg-[#4a5f48]"
-                                style={{
-                                    backgroundImage: `url('/images/reports/energy.jpg')`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
+                        
                         </Card>
 
                         {/* WATER CONSUMPTION TREND */}
@@ -312,14 +305,7 @@ export default function Welcome({
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Water Consumption Trend</CardTitle>
                             </CardHeader>
-                            <CardContent
-                                className="h-[220px] bg-[#4a5f48]"
-                                style={{
-                                    backgroundImage: `url('/images/reports/water.jpg')`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
+                     
                         </Card>
 
                         {/* WASTE DISPOSAL COST ANALYSIS */}
@@ -327,14 +313,7 @@ export default function Welcome({
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Waste Disposal Cost Analysis</CardTitle>
                             </CardHeader>
-                            <CardContent
-                                className="h-[220px] bg-[#4a5f48]"
-                                style={{
-                                    backgroundImage: `url('/images/reports/waste.jpg')`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
+                        
                         </Card>
 
                         {/* SUSTAINABILITY SCORE TRENDLINE */}
@@ -342,14 +321,7 @@ export default function Welcome({
                             <CardHeader className="bg-[#F7F1DE]">
                                 <CardTitle className="text-xl font-semibold">Sustainability Score Trendline</CardTitle>
                             </CardHeader>
-                            <CardContent
-                                className="h-[220px] bg-[#4a5f48]"
-                                style={{
-                                    backgroundImage: `url('/images/reports/sustainability.jpg')`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
+                
                         </Card>
 
                     </div>
